@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: edgeproof
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DATA_MODE
+        value: demo
+      - key: REPLAY_FILE
+        value: data/demo-replay.json
+      - key: REPLAY_META_FILE
+        value: data/replay-meta.json
+      - key: NODE_VERSION
+        value: "22"

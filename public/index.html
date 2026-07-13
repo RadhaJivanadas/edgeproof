@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07100f" />
+  <title>EdgeProof — Verifiable Autonomous Trading Agent</title>
+  <meta name="description" content="Autonomous, explainable World Cup trading signals powered by TxLINE and anchored on Solana." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="topbar">
+    <div class="brand-wrap">
+      <div class="brand-mark">E<span>P</span></div>
+      <div>
+        <div class="brand">EDGE<span>//</span>PROOF</div>
+        <div class="tagline">autonomous decisions · verifiable data</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div id="mode-pill" class="pill"><span class="dot"></span><span>connecting</span></div>
+      <a class="ghost-link" href="https://txline.txodds.com/documentation/quickstart" target="_blank" rel="noreferrer">TxLINE docs ↗</a>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero panel">
+      <div class="hero-copy">
+        <div class="eyebrow">WORLD CUP 2026 · AUTONOMOUS PAPER EXECUTION</div>
+        <h1>Find the gap between<br><em>the event and the price.</em></h1>
+        <p>EdgeProof reads TxLINE scores and StablePrice odds, detects delayed repricing after match events, sizes risk automatically, and attaches a Solana-verifiable proof trail to every decision.</p>
+        <div class="hero-badges">
+          <span>TxLINE SSE</span><span>event-aware model</span><span>½ Kelly risk</span><span>Merkle proof vault</span>
+        </div>
+      </div>
+      <div class="match-card">
+        <div class="match-meta">
+          <span id="competition">World Cup 2026</span>
+          <span id="minute" class="live-minute">00′</span>
+        </div>
+        <div class="teams">
+          <div class="team"><span class="flag">🇫🇷</span><strong id="home-team">France</strong></div>
+          <div id="score" class="score">0 <small>:</small> 0</div>
+          <div class="team right"><strong id="away-team">Morocco</strong><span class="flag">🇲🇦</span></div>
+        </div>
+        <div class="prob-row">
+          <div><span id="p-home">—</span><small>HOME</small></div>
+          <div><span id="p-draw">—</span><small>DRAW</small></div>
+          <div><span id="p-away">—</span><small>AWAY</small></div>
+        </div>
+        <div id="demo-warning" class="demo-warning">Synthetic replay for judge-ready demo. Live mode uses TxLINE credentials.</div>
+      </div>
+    </section>
+
+    <section class="kpis">
+      <article class="kpi panel"><div class="kpi-label">EQUITY</div><div id="equity" class="kpi-value">$10,000.00</div><div id="bankroll-delta" class="kpi-foot neutral">paper portfolio</div></article>
+      <article class="kpi panel"><div class="kpi-label">LIVE P&amp;L</div><div id="pnl" class="kpi-value">$0.00</div><div id="drawdown" class="kpi-foot neutral">max DD $0</div></article>
+      <article class="kpi panel"><div class="kpi-label">AGENT SIGNALS</div><div id="signal-count" class="kpi-value">0</div><div id="hit-rate" class="kpi-foot neutral">awaiting decisions</div></article>
+      <article class="kpi panel"><div class="kpi-label">PROOF RECORDS</div><div id="verified-count" class="kpi-value">0</div><div class="kpi-foot positive">TxLINE → Solana</div></article>
+    </section>
+
+    <section class="grid-main">
+      <article class="panel chart-panel">
+        <div class="panel-head">
+          <div><div class="eyebrow">CONSENSUS PROBABILITY</div><h2>Market repricing</h2></div>
+          <div class="legend"><span class="home-line">Home</span><span class="draw-line">Draw</span><span class="away-line">Away</span></div>
+        </div>
+        <svg id="chart" viewBox="0 0 900 310" role="img" aria-label="Probability chart">
+          <g id="grid-lines"></g>
+          <path id="home-path" class="chart-path home" d="" />
+          <path id="draw-path" class="chart-path draw" d="" />
+          <path id="away-path" class="chart-path away" d="" />
+          <g id="chart-events"></g>
+        </svg>
+        <div class="chart-footer">
+          <span>0%</span><span>TxLINE StablePrice consensus · normalized</span><span>100%</span>
+        </div>
+      </article>
+
+      <aside class="panel agent-panel">
+        <div class="panel-head compact">
+          <div><div class="eyebrow">AUTONOMOUS AGENT</div><h2>Decision engine</h2></div>
+          <span id="agent-pulse" class="agent-pulse">SCANNING</span>
+        </div>
+        <div class="engine-visual">
+          <div class="ring"><div><strong id="confidence-ring">0%</strong><small>CONFIDENCE</small></div></div>
+          <div class="engine-stats">
+            <div><span>Min edge</span><strong id="min-edge">3.5%</strong></div>
+            <div><span>Risk cap</span><strong id="risk-cap">3.0%</strong></div>
+            <div><span>Processed</span><strong id="processed">0</strong></div>
+          </div>
+        </div>
+        <div class="logic-flow">
+          <div><b>01</b><span>Event shock</span><small>goal · red card · penalty · pressure</small></div>
+          <div><b>02</b><span>Price response</span><small>consensus shift · entropy · volatility</small></div>
+          <div><b>03</b><span>Edge &amp; risk</span><small>explainability · ½ Kelly · hard cap</small></div>
+          <div><b>04</b><span>Proof trail</span><small>MessageId · seq · Merkle branch</small></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid-lower">
+      <article class="panel signals-panel">
+        <div class="panel-head">
+          <div><div class="eyebrow">EXPLAINABLE OUTPUT</div><h2>Signal tape</h2></div>
+          <span class="subtle">newest first</span>
+        </div>
+        <div id="signals" class="empty-state">No trade yet. The agent is waiting for a material event/price divergence.</div>
+      </article>
+
+      <article class="panel positions-panel">
+        <div class="panel-head">
+          <div><div class="eyebrow">AUTONOMOUS EXECUTION</div><h2>Paper positions</h2></div>
+          <span class="subtle">risk-limited</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>SIDE</th><th>STAKE</th><th>ENTRY</th><th>NOW</th><th>P&amp;L</th><th>STATUS</th></tr></thead>
+            <tbody id="positions"><tr><td colspan="7" class="table-empty">No open positions</td></tr></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel proof-panel">
+      <div class="panel-head">
+        <div><div class="eyebrow">AUDITABILITY</div><h2>Proof vault</h2></div>
+        <div class="proof-summary"><span class="shield">✓</span><span>Every decision can be reconstructed from TxLINE source records and anchored roots.</span></div>
+      </div>
+      <div id="proofs" class="proof-grid"><div class="empty-state wide">Proof records appear as the replay reaches decisive events.</div></div>
+    </section>
+
+    <section id="replay-controls" class="replay panel">
+      <div>
+        <div class="eyebrow">JUDGE MODE</div>
+        <strong>Deterministic replay</strong>
+        <span id="replay-progress">0 / 0 events</span>
+      </div>
+      <div class="progress-track"><div id="progress-bar"></div></div>
+      <div class="replay-buttons">
+        <button id="reset-btn">↺ Reset</button>
+        <button id="play-btn" class="primary">▶ Play</button>
+        <select id="speed-select" aria-label="Replay speed"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option><option value="8">8×</option></select>
+      </div>
+    </section>
+
+    <footer>
+      <span>EDGE//PROOF · TxODDS World Cup Hackathon 2026</span>
+      <span>Paper trading only. No financial advice.</span>
+    </footer>
+  </main>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

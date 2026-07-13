@@ -1,0 +1,12 @@
+{
+  "source": "synthetic",
+  "synthetic": true,
+  "generatedAt": "2026-07-13T00:00:00.000Z",
+  "fixture": {
+    "id": 18209181,
+    "home": "France",
+    "away": "Morocco",
+    "competition": "World Cup 2026"
+  },
+  "note": "Synthetic TxLINE-shaped judge replay. Replace it with npm run capture:txline before final submission."
+}

@@ -1,0 +1,19 @@
+{
+  "name": "edgeproof",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Autonomous explainable World Cup trading agent powered by verifiable TxLINE data",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "DATA_MODE=demo node --watch server.js",
+    "test": "node --test",
+    "capture:txline": "node scripts/capture-txline-replay.js",
+    "preflight": "node scripts/preflight.js",
+    "fixtures:txline": "node scripts/list-txline-fixtures.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
