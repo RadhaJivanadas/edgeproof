@@ -11,7 +11,7 @@ services:
       - key: DATA_MODE
         value: demo
       - key: REPLAY_FILE
-        value: data/demo-replay.json
+        value: data/txline-replay.json
       - key: REPLAY_META_FILE
         value: data/replay-meta.json
       - key: NODE_VERSION

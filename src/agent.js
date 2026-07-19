@@ -47,9 +47,9 @@ export function normalizeOdds(record) {
 
   const normalized = normalizedProbabilities(probs);
   const lowerNames = names.map((name) => String(name).toLowerCase());
-  const homeIndex = lowerNames.findIndex((n) => /home|participant ?1|\b1\b/.test(n));
+  const homeIndex = lowerNames.findIndex((n) => /home|part(?:icipant)? ?1|\b1\b/.test(n));
   const drawIndex = lowerNames.findIndex((n) => /draw|tie|\bx\b/.test(n));
-  const awayIndex = lowerNames.findIndex((n) => /away|participant ?2|\b2\b/.test(n));
+  const awayIndex = lowerNames.findIndex((n) => /away|part(?:icipant)? ?2|\b2\b/.test(n));
 
   const indices = [
     homeIndex >= 0 ? homeIndex : 0,
@@ -72,10 +72,10 @@ export function normalizeOdds(record) {
 }
 
 export function normalizeScore(record) {
-  const soccer = pick(record, "scoreSoccer", "ScoreSoccer") || {};
+  const soccer = pick(record, "scoreSoccer", "ScoreSoccer", "Score") || {};
   const p1 = pick(soccer, "Participant1.Total.Goals", "participant1.total.goals") ?? 0;
   const p2 = pick(soccer, "Participant2.Total.Goals", "participant2.total.goals") ?? 0;
-  const clockSeconds = Number(pick(record, "dataSoccer.Clock.seconds", "clock.seconds", "Clock.seconds") ?? 0);
+  const clockSeconds = Number(pick(record, "dataSoccer.Clock.seconds", "clock.seconds", "Clock.seconds", "Clock.Seconds") ?? 0);
   const minutes = Number(pick(record, "dataSoccer.Minutes", "dataSoccer.minutes"));
   const minute = Number.isFinite(minutes) ? minutes : Math.floor(clockSeconds / 60);
 
@@ -88,8 +88,8 @@ export function normalizeScore(record) {
     minute,
     homeScore: Number(p1),
     awayScore: Number(p2),
-    participant: Number(pick(record, "dataSoccer.Participant", "dataSoccer.participant") || 0),
-    outcome: String(pick(record, "dataSoccer.Outcome", "dataSoccer.outcome") || ""),
+    participant: Number(pick(record, "dataSoccer.Participant", "dataSoccer.participant", "Participant") || 0),
+    outcome: String(pick(record, "dataSoccer.Outcome", "dataSoccer.outcome", "Data.Outcome", "Outcome") || ""),
     raw: record,
   };
 }

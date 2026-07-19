@@ -97,12 +97,43 @@ export class TxLineClient {
     return this.request(`/api/scores/snapshot/${fixtureId}`);
   }
 
-  scoresHistorical(fixtureId = this.fixtureId) {
-    return this.request(`/api/scores/historical/${fixtureId}`);
+  // Served as SSE-formatted text (`data: {...}` lines) or a JSON array, and
+  // stays empty until TxLINE opens the fixture's historical window.
+  async scoresHistorical(fixtureId = this.fixtureId) {
+    const response = await fetch(`${this.baseUrl}/api/scores/historical/${fixtureId}`, {
+      headers: this.headers(),
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`TxLINE ${response.status}: ${body.slice(0, 300)}`);
+    }
+    const body = (await response.text()).trim();
+    if (!body) return [];
+    if (body.startsWith("[") || body.startsWith("{")) {
+      try {
+        return JSON.parse(body);
+      } catch {
+        /* fall through to SSE parsing */
+      }
+    }
+    const records = [];
+    for (const line of body.split(/\r?\n/)) {
+      if (!line.startsWith("data:")) continue;
+      try {
+        records.push(JSON.parse(line.slice(5).trim()));
+      } catch {
+        /* skip malformed frame */
+      }
+    }
+    return records;
   }
 
   oddsUpdates(epochDay, hourOfDay, interval) {
     return this.request(`/api/odds/updates/${epochDay}/${hourOfDay}/${interval}`);
+  }
+
+  scoresUpdates(epochDay, hourOfDay, interval) {
+    return this.request(`/api/scores/updates/${epochDay}/${hourOfDay}/${interval}`);
   }
 
   oddsProof(messageId, ts) {

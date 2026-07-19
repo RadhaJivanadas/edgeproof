@@ -31,6 +31,40 @@ test("normalizes soccer score payload", () => {
   assert.equal(score.minute, 22);
 });
 
+test("normalizes a raw TxLINE historical score record", () => {
+  const score = normalizeScore({
+    FixtureId: 18257739,
+    Action: "goal",
+    Ts: 1784496390003,
+    Seq: 1049,
+    StatusId: 7,
+    Participant: 1,
+    Clock: { Running: true, Seconds: 5739 },
+    Score: {
+      Participant1: { Total: { Goals: 1, Corners: 9 } },
+      Participant2: { Total: { YellowCards: 3, RedCards: 1 } },
+    },
+  });
+  assert.equal(score.homeScore, 1);
+  assert.equal(score.awayScore, 0);
+  assert.equal(score.minute, 95);
+  assert.equal(score.participant, 1);
+  assert.equal(score.action, "goal");
+});
+
+test("normalizes StablePrice 1X2 odds with part1/part2 outcome names", () => {
+  const odds = normalizeOdds({
+    FixtureId: 18257739,
+    MessageId: "m-stab",
+    Ts: 1784487902001,
+    Bookmaker: "TXLineStablePriceDemargined",
+    SuperOddsType: "1X2_PARTICIPANT_RESULT",
+    PriceNames: ["part1", "draw", "part2"],
+    Pct: ["50.0", "30.0", "20.0"],
+  });
+  assert.deepEqual(odds.probabilities.map((x) => Number(x.toFixed(3))), [0.5, 0.3, 0.2]);
+});
+
 test("opens a risk-capped position after event/price divergence", () => {
   const engine = new AgentEngine({ bankroll: 10000, minEdge: 0.02, minConfidence: 0.55 });
   engine.ingestOdds(normalizeOdds({

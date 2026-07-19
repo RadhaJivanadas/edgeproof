@@ -1,12 +1,24 @@
 {
-  "source": "synthetic",
-  "synthetic": true,
-  "generatedAt": "2026-07-13T00:00:00.000Z",
+  "source": "txline-historical",
+  "synthetic": false,
+  "generatedAt": "2026-07-19T22:36:25.011Z",
+  "baseUrl": "https://txline-dev.txodds.com",
   "fixture": {
-    "id": 18209181,
-    "home": "France",
-    "away": "Morocco",
-    "competition": "World Cup 2026"
+    "id": 18257739,
+    "home": "Spain",
+    "away": "Argentina",
+    "competition": "TxLINE covered fixture",
+    "startTime": 1784487900000
   },
-  "note": "Synthetic TxLINE-shaped judge replay. Replace it with npm run capture:txline before final submission."
+  "records": {
+    "scores": 199,
+    "odds": 420,
+    "proofs": 2
+  },
+  "captureMethod": {
+    "scores": "scores/updates windows",
+    "odds": "odds/updates windows (1X2 result market, evenly thinned)",
+    "trimmed": "possession chatter and per-record Stats blobs removed"
+  },
+  "note": "Captured from TxLINE authenticated historical endpoints; credentials are not stored."
 }

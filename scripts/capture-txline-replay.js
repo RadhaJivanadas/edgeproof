@@ -83,18 +83,61 @@ function proofSummary(kind, raw, record) {
 
 await client.refreshJwt();
 
-const [fixturePayload, historicalPayload] = await Promise.all([
+const [fixturePayload, historicalPayload, scoreSnapshotPayload] = await Promise.all([
   client.fixtures(),
   client.scoresHistorical(fixtureId),
+  client.scoresSnapshot(fixtureId).catch(() => []),
 ]);
 
 const fixture = unwrap(fixturePayload).find((row) => fixtureOf(row) === fixtureId) || {};
+const snapshotRows = unwrap(scoreSnapshotPayload).filter((row) => fixtureOf(row) === fixtureId);
+
+const scoreRows = unwrap(historicalPayload).filter((row) => fixtureOf(row) === fixtureId);
+let scoreSource = "scores/historical";
+
+if (!scoreRows.length) {
+  // The historical endpoint opens with a delay after full time; until then the
+  // same records are served by the 5-minute update windows.
+  scoreSource = "scores/updates windows";
+  const startTime = Number(
+    fixture.StartTime ?? fixture.startTime ?? snapshotRows[0]?.StartTime ?? snapshotRows[0]?.startTime ?? NaN,
+  );
+  if (!Number.isFinite(startTime)) {
+    throw new Error("No historical scores yet and no fixture StartTime to scan update windows.");
+  }
+  const from = startTime - 20 * 60_000;
+  const to = Math.min(Date.now(), startTime + 4.5 * 3_600_000);
+  for (let t = from; t <= to; t += 300_000) {
+    const { epochDay, hour, interval } = bucketFor(t);
+    try {
+      const payload = await client.scoresUpdates(epochDay, hour, interval);
+      scoreRows.push(...unwrap(payload).filter((row) => fixtureOf(row) === fixtureId));
+    } catch (error) {
+      console.warn(`Skipping score bucket ${epochDay}/${hour}/${interval}: ${error.message}`);
+    }
+  }
+  // The snapshot keeps the latest record per action — including game_finalised
+  // when the closing update window is not served yet.
+  scoreRows.push(...snapshotRows);
+}
+
+// Possession/restart chatter dominates the raw feed; keep the records the
+// agent reacts to so the judge replay stays focused.
+const scoreNoise = new Set([
+  "safe_possession", "attack_possession", "possession", "danger_possession",
+  "high_danger_possession", "free_kick", "throw_in", "goal_kick", "possible",
+  "comment", "standby", "connected", "disconnected", "players_warming_up",
+  "players_on_the_pitch", "jersey", "pitch", "venue", "weather", "lineups",
+  "coverage_update", "kickoff_team",
+]);
+const slimScore = ({ Stats, Parti1State, Parti2State, ...rest }) => rest;
+
 const scores = uniqueBy(
-  unwrap(historicalPayload)
-    .filter((row) => fixtureOf(row) === fixtureId && tsOf(row) > 0)
+  scoreRows
+    .filter((row) => tsOf(row) > 0 && !scoreNoise.has(actionOf(row)))
     .sort((a, b) => tsOf(a) - tsOf(b)),
   (row) => seqOf(row) || `${tsOf(row)}:${actionOf(row)}`,
-);
+).map(slimScore);
 
 if (!scores.length) {
   throw new Error("No historical score records returned. TxLINE historical scores are available only for eligible completed fixtures.");
@@ -119,9 +162,29 @@ for (const timestamp of bucketStarts) {
   }
 }
 
-const odds = uniqueBy(
-  oddsRows.filter((row) => tsOf(row) > 0).sort((a, b) => tsOf(a) - tsOf(b)),
-  (row) => messageIdOf(row) || `${tsOf(row)}:${JSON.stringify(row?.Pct ?? row?.pct ?? [])}`,
+// Keep only the three-way result market the agent trades on (the windows also
+// carry every over/under and handicap line), then cap the tick count so the
+// replay file and playback stay manageable.
+const isResultMarket = (row) => {
+  const market = String(row?.SuperOddsType ?? row?.superOddsType ?? "");
+  const names = row?.PriceNames ?? row?.priceNames ?? [];
+  return /1x2|result|moneyline|match/i.test(market) && names.length >= 3;
+};
+
+function thin(rows, max) {
+  if (rows.length <= max) return rows;
+  const step = (rows.length - 1) / (max - 1);
+  const kept = [];
+  for (let i = 0; i < max; i += 1) kept.push(rows[Math.round(i * step)]);
+  return kept;
+}
+
+const odds = thin(
+  uniqueBy(
+    oddsRows.filter((row) => tsOf(row) > 0 && isResultMarket(row)).sort((a, b) => tsOf(a) - tsOf(b)),
+    (row) => messageIdOf(row) || `${tsOf(row)}:${JSON.stringify(row?.Pct ?? row?.pct ?? [])}`,
+  ),
+  Number(process.env.MAX_ODDS_EVENTS || 420),
 );
 
 if (!odds.length) {
@@ -188,6 +251,11 @@ fs.writeFileSync(metaPath, `${JSON.stringify({
     startTime: fixture.StartTime ?? fixture.startTime ?? new Date(minTs).toISOString(),
   },
   records: { scores: scores.length, odds: odds.length, proofs: proofCandidates.length },
+  captureMethod: {
+    scores: scoreSource,
+    odds: "odds/updates windows (1X2 result market, evenly thinned)",
+    trimmed: "possession chatter and per-record Stats blobs removed",
+  },
   note: "Captured from TxLINE authenticated historical endpoints; credentials are not stored.",
 }, null, 2)}\n`);
 
