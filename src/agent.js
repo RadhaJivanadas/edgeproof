@@ -72,12 +72,20 @@ export function normalizeOdds(record) {
 }
 
 export function normalizeScore(record) {
-  const soccer = pick(record, "scoreSoccer", "ScoreSoccer", "Score") || {};
-  const p1 = pick(soccer, "Participant1.Total.Goals", "participant1.total.goals") ?? 0;
-  const p2 = pick(soccer, "Participant2.Total.Goals", "participant2.total.goals") ?? 0;
-  const clockSeconds = Number(pick(record, "dataSoccer.Clock.seconds", "clock.seconds", "Clock.seconds", "Clock.Seconds") ?? 0);
+  // Many live records (shots, VAR, kickoff, clock messages) carry no score
+  // block at all. Report null so the engine keeps the last known score
+  // instead of flashing 0:0.
+  const soccer = pick(record, "scoreSoccer", "ScoreSoccer", "Score");
+  const hasScore = soccer != null && Object.keys(soccer).length > 0;
+  const p1 = hasScore ? pick(soccer, "Participant1.Total.Goals", "participant1.total.goals") ?? 0 : null;
+  const p2 = hasScore ? pick(soccer, "Participant2.Total.Goals", "participant2.total.goals") ?? 0 : null;
+  const clockRaw = pick(record, "dataSoccer.Clock.seconds", "clock.seconds", "Clock.seconds", "Clock.Seconds");
   const minutes = Number(pick(record, "dataSoccer.Minutes", "dataSoccer.minutes"));
-  const minute = Number.isFinite(minutes) ? minutes : Math.floor(clockSeconds / 60);
+  const minute = Number.isFinite(minutes)
+    ? minutes
+    : clockRaw != null
+      ? Math.floor(Number(clockRaw) / 60)
+      : null;
 
   return {
     fixtureId: Number(pick(record, "fixtureId", "FixtureId")),
@@ -86,8 +94,8 @@ export function normalizeScore(record) {
     action: String(pick(record, "action", "Action", "dataSoccer.Action") || "update"),
     statusId: Number(pick(record, "statusId", "StatusId", "statusSoccerId") || 0),
     minute,
-    homeScore: Number(p1),
-    awayScore: Number(p2),
+    homeScore: p1 == null ? null : Number(p1),
+    awayScore: p2 == null ? null : Number(p2),
     participant: Number(pick(record, "dataSoccer.Participant", "dataSoccer.participant", "Participant") || 0),
     outcome: String(pick(record, "dataSoccer.Outcome", "dataSoccer.outcome", "Data.Outcome", "Outcome") || ""),
     raw: record,
@@ -133,6 +141,10 @@ export class AgentEngine {
   }
 
   ingestScore(score, proof = null) {
+    // Records without a score/clock block inherit the last known values.
+    if (score.homeScore == null) score.homeScore = this.lastScore?.homeScore ?? 0;
+    if (score.awayScore == null) score.awayScore = this.lastScore?.awayScore ?? 0;
+    if (score.minute == null) score.minute = this.lastScore?.minute ?? 0;
     this.lastScore = score;
     const impact = eventImpact(score.action, score.participant, score.outcome);
     if (impact) {

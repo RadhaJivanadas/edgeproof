@@ -65,6 +65,19 @@ test("normalizes StablePrice 1X2 odds with part1/part2 outcome names", () => {
   assert.deepEqual(odds.probabilities.map((x) => Number(x.toFixed(3))), [0.5, 0.3, 0.2]);
 });
 
+test("keeps the last known score for records without a score block", () => {
+  const engine = new AgentEngine();
+  engine.ingestScore(normalizeScore({
+    FixtureId: 1, Seq: 5, Ts: 1000, Action: "goal", Participant: 1,
+    Clock: { Running: true, Seconds: 600 },
+    Score: { Participant1: { Total: { Goals: 1 } } },
+  }));
+  engine.ingestScore(normalizeScore({ FixtureId: 1, Seq: 6, Ts: 2000, Action: "shot" }));
+  assert.equal(engine.lastScore.homeScore, 1);
+  assert.equal(engine.lastScore.awayScore, 0);
+  assert.equal(engine.lastScore.minute, 10);
+});
+
 test("opens a risk-capped position after event/price divergence", () => {
   const engine = new AgentEngine({ bankroll: 10000, minEdge: 0.02, minConfidence: 0.55 });
   engine.ingestOdds(normalizeOdds({
