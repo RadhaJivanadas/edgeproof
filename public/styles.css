@@ -73,6 +73,8 @@ h1 em { font-style: normal; color: var(--accent-2); }
 .flag { font-size: 29px; filter: saturate(.8); }
 .score { font-size: clamp(45px, 5vw, 68px); font-weight: 900; letter-spacing: -.06em; white-space: nowrap; }
 .score small { color: var(--muted); font-weight: 400; }
+.match-event { margin: -22px 0 18px; text-align: center; color: var(--muted); font-size: 15px; letter-spacing: .04em; }
+.match-event.highlight { color: #d4bf7c; font-weight: 700; }
 .prob-row { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .prob-row div { padding: 15px; text-align: center; border-right: 1px solid var(--line); }
 .prob-row div:last-child { border: 0; }

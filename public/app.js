@@ -45,6 +45,33 @@ function renderMatch(data) {
   setText("away-team", fixture.away || odds?.names?.[2] || "Away");
   setText("minute", score ? `${String(score.minute).padStart(2, "0")}′` : "00′");
   setText("score", `${score?.homeScore ?? 0} : ${score?.awayScore ?? 0}`);
+
+  // Surface the latest feed action so score rollbacks (VAR overturns in the
+  // real record stream) read as match events, not glitches.
+  const eventEl = $("match-event");
+  if (eventEl) {
+    const labels = {
+      goal: "⚽ goal",
+      var: "VAR review in progress",
+      var_end: "VAR review complete",
+      action_discarded: "event overturned after VAR — score rolled back",
+      red_card: "red card",
+      yellow_card: "yellow card",
+      penalty: "penalty",
+      kickoff: "kickoff",
+      halftime_finalised: "half-time",
+      additional_time: "additional time",
+      substitution: "substitution",
+      game_finalised: "full time — final score verified",
+    };
+    const action = score?.action || "";
+    const team = score?.participant === 1 ? fixture.home : score?.participant === 2 ? fixture.away : "";
+    const label = labels[action] || action.replace(/_/g, " ");
+    eventEl.textContent = action
+      ? `${label}${team ? ` · ${team}` : ""} · ${score.minute}′`
+      : "waiting for match events";
+    eventEl.classList.toggle("highlight", ["goal", "var", "var_end", "action_discarded", "red_card", "penalty", "game_finalised"].includes(action));
+  }
   setText("p-home", odds ? fmtPct(odds.probabilities[0]) : "—");
   setText("p-draw", odds ? fmtPct(odds.probabilities[1]) : "—");
   setText("p-away", odds ? fmtPct(odds.probabilities[2]) : "—");
