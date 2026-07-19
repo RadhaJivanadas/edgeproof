@@ -2,24 +2,38 @@
 
 **Autonomous, explainable World Cup trading signals powered by verifiable TxLINE data.**
 
+Built for the TxODDS World Cup hackathon (*Trading Tools and Agents* track).
+
+<p align="center">
+  <a href="https://edgeproof.onrender.com"><img src="https://img.shields.io/badge/Live%20demo-online-16a34a?style=flat-square" alt="Live demo"></a>
+  <a href="https://github.com/RadhaJivanadas/edgeproof/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/RadhaJivanadas/edgeproof/ci.yml?style=flat-square&label=CI" alt="CI"></a>
+  <img src="https://img.shields.io/badge/replay-TxLINE%20historical-0ea5e9?style=flat-square" alt="TxLINE historical replay">
+  <img src="https://img.shields.io/badge/Node.js-20%2B%20%C2%B7%20zero%20deps-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node.js 20+, zero dependencies">
+  <img src="https://img.shields.io/badge/license-MIT-111?style=flat-square" alt="MIT">
+</p>
+
+**Live demo:** https://edgeproof.onrender.com &nbsp;·&nbsp; **Data provenance:** [`data/replay-meta.json`](data/replay-meta.json)
+
 ![EdgeProof dashboard](docs/dashboard.webp)
 
 EdgeProof connects granular TxLINE score events with StablePrice consensus odds. It detects cases where the market has not fully repriced after a goal, red card, penalty, or sustained pressure; explains the discrepancy; opens a risk-capped paper position; and stores the TxLINE identifiers needed to obtain a Solana Merkle proof.
 
-## Why this can win
+## What makes it different
 
-Most trading-agent demos stop at “odds moved by X%.” EdgeProof connects four pieces in one product:
+Most trading-agent demos stop at "odds moved by X%". EdgeProof closes the loop:
 
-1. **Event-aware detection** — score events and market probabilities are processed together.
-2. **Autonomous operation** — signals, position sizing, entries, marks, and exits happen without manual input.
-3. **Explainability** — every signal states the expected event shock, actual repricing, momentum, volatility, edge, confidence, and stake.
-4. **Verifiability** — each decision retains `MessageId`, timestamp, fixture ID, and score `seq`; live mode fetches `/api/odds/validation` and `/api/scores/stat-validation` proofs.
+1. Score events and market probabilities are processed together, so a goal and its repricing are one observation, not two feeds.
+2. Signals, position sizing, entries, marks, and exits run without manual input.
+3. Every signal states the expected event shock, the actual repricing, momentum, volatility, edge, confidence, and stake.
+4. Every decision keeps `MessageId`, timestamp, fixture ID, and score `seq`; live mode fetches `/api/odds/validation` and `/api/scores/stat-validation` Merkle proofs.
 
-## Recommended competition deployment
+## The judge replay
 
-Keep the public Render service in deterministic replay mode. Judges must be able to open and test the product without purchasing a subscription, creating a wallet, or waiting for a live fixture.
+The public deployment runs a deterministic replay, so judges can open and test the product without buying a subscription, creating a wallet, or waiting for a live fixture.
 
-The strongest submission uses a **real TxLINE historical replay**, not synthetic data. First list covered fixtures, then capture one in the historical window:
+The bundled replay is real TxLINE data: **Spain vs Argentina, 19 July 2026** (fixture `18257739`), captured from the authenticated historical endpoints as 199 score records, 420 StablePrice 1X2 ticks, and 2 validation proofs. The match turned out to be a useful stress test: three goal records, two of them overturned by VAR. When the scoreboard rolls back during playback, that is the actual record stream, and the dashboard labels the overturn. Provenance lives in [`data/replay-meta.json`](data/replay-meta.json).
+
+To capture a different fixture, list covered fixtures and pick one in the historical window:
 
 ```bash
 TXLINE_API_TOKEN="..." npm run fixtures:txline
@@ -29,14 +43,7 @@ TXLINE_FIXTURE_ID="..." \
 npm run capture:txline
 ```
 
-This downloads authenticated historical scores and odds, filters them to one fixture, captures available validation proofs, and writes:
-
-- `data/txline-replay.json`
-- `data/replay-meta.json`
-
-Then change `REPLAY_FILE` in `render.yaml` to `data/txline-replay.json`, commit, and deploy. Credentials are never written to the replay or repository.
-
-If a suitable recently completed fixture is not available before the deadline, deploy the included synthetic judge replay and attach a short video showing the real live adapter connecting to TxLINE.
+This downloads authenticated historical scores and odds, filters them to one fixture, captures available validation proofs, and rewrites `data/txline-replay.json` plus `data/replay-meta.json`. `render.yaml` already points `REPLAY_FILE` at the capture. Credentials are never written to the replay or the repository.
 
 ## Run locally
 
@@ -48,7 +55,7 @@ npm test
 npm start
 ```
 
-Open `http://localhost:3000`. The deterministic replay starts automatically. Use Reset, Play/Pause, and 1×–8× controls.
+Open `http://localhost:3000`. The replay starts automatically. Use Reset, Play/Pause, and 1×–8× controls.
 
 ## Connect live TxLINE data
 
@@ -113,21 +120,21 @@ TxLINE odds snapshot/SSE ───┘                       │
 TxLINE validation endpoints ─> proof vault <────────┘
 ```
 
-- `server.js` — zero-dependency Node HTTP/SSE server and orchestration
-- `src/txline-client.js` — snapshots, historical data, streaming, reconnects, proof endpoints
-- `src/agent.js` — normalizers, edge model, confidence, Kelly sizing, portfolio state
-- `src/replay.js` — deterministic judge replay
-- `scripts/capture-txline-replay.js` — creates a real TxLINE-backed replay
-- `public/` — responsive dashboard, no build step
-- `data/replay-meta.json` — visible data provenance
+- `server.js`: zero-dependency Node HTTP/SSE server and orchestration
+- `src/txline-client.js`: snapshots, historical data, streaming, reconnects, proof endpoints
+- `src/agent.js`: normalizers, edge model, confidence, Kelly sizing, portfolio state
+- `src/replay.js`: deterministic judge replay
+- `scripts/capture-txline-replay.js`: creates a real TxLINE-backed replay
+- `public/`: responsive dashboard, no build step
+- `data/replay-meta.json`: visible data provenance
 
 ## API
 
 - `GET /api/health`
 - `GET /api/state`
-- `GET /api/events` — dashboard SSE
-- `POST /api/replay/start|pause|reset|speed` — replay mode
-- `GET /api/txline/proof?messageId=...&ts=...` — live mode
+- `GET /api/events`: dashboard SSE
+- `POST /api/replay/start|pause|reset|speed`: replay mode
+- `GET /api/txline/proof?messageId=...&ts=...`: live mode
 
 ## Validation
 
