@@ -12,7 +12,7 @@ Built for the TxODDS World Cup hackathon (*Trading Tools and Agents* track).
   <img src="https://img.shields.io/badge/license-MIT-111?style=flat-square" alt="MIT">
 </p>
 
-**Live demo:** https://edgeproof.onrender.com &nbsp;·&nbsp; **Data provenance:** [`data/replay-meta.json`](data/replay-meta.json)
+**Live demo:** https://edgeproof.onrender.com &nbsp;·&nbsp; **Demo video:** https://www.youtube.com/watch?v=zPTN3mVInTg &nbsp;·&nbsp; **Data provenance:** [`data/replay-meta.json`](data/replay-meta.json)
 
 ![EdgeProof dashboard](docs/dashboard.webp)
 
